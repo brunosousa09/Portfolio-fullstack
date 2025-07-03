@@ -1,0 +1,12 @@
+# Ignorar node_modules em qualquer subpasta
+**/node_modules
+
+# Ignorar ficheiros de ambiente que contêm senhas e chaves
+.env
+*.env.local
+
+# Pasta de build de produção do Vite (do cliente)
+client/dist
+
+# Logs do NPM
+npm-debug.log*
