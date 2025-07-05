@@ -265,7 +265,7 @@ export default function App() {
           </motion.section>
         </Element>
         <footer className="text-center text-gray-500 text-sm py-8 mt-16 border-t border-gray-800/50">
-           © {new Date().getFullYear()} Bruno Antonio. Todos os direitos reservados.
+           © {new Date().getFullYear()} Bruno Antonio Dev. Todos os direitos reservados.
         </footer>
       </main>
       <AnimatePresence>
