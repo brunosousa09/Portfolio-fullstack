@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link, Element } from 'react-scroll';
 import {
-  Github, Linkedin, Send, ArrowUp, CircleCheck, CircleDashed, Rocket, Menu as MenuIcon, X as CloseIcon
+  Github, Linkedin, Send, ArrowUp, CircleCheck, CircleDashed, Rocket, Menu as MenuIcon, X as CloseIcon,
+  Instagram,
+  MessageCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import emailjs from '@emailjs/browser';
+import StatusModal from './StatusModal';
 
 const TopNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,26 +57,69 @@ const BackgroundEffect = () => (
   <div className="fixed top-0 left-0 w-full h-full z-0 animate-gradient-x bg-[length:300%_300%] bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] opacity-60" />
 );
 
-const FloatingLabelInput = ({ id, type, children, ...props }) => (
+const FloatingLabelInput = ({ id, type, children, ...props }) => {
+  return (
     <div className="relative">
-      <input id={id} type={type} placeholder=" " className="peer w-full px-4 py-3 text-sm bg-white/10 backdrop-blur-md text-white border border-gray-500/40 rounded-md placeholder-transparent focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition duration-300" {...props} />
-      <label htmlFor={id} className="absolute left-4 top-3 text-gray-300 text-sm transition-all duration-300 peer-placeholder-shown:text-base peer-placeholder-shown:translate-y-0 peer-focus:text-xs peer-focus:-translate-y-5">
+      <input
+        id={id}
+        type={type}
+        placeholder=" " 
+        className="peer block w-full px-4 py-3 text-sm text-white bg-transparent border border-gray-500/40 rounded-md appearance-none focus:outline-none focus:ring-0 focus:border-white transition"
+        {...props}
+      />
+      <label
+        htmlFor={id}
+        className="absolute text-sm text-gray-300 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] bg-[#1d1d2e] px-2 
+                   peer-focus:text-white peer-focus:dark:text-white
+                   peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 
+                   peer-focus:top-4 peer-focus:scale-75 peer-focus:-translate-y-4
+                   start-4"
+      >
         {children}
       </label>
     </div>
-);
+  );
+};
   
-const FloatingLabelTextarea = ({ id, children, ...props }) => (
+const FloatingLabelTextarea = ({ id, children, ...props })=> {
+  return (
     <div className="relative">
-      <textarea id={id} placeholder=" " className="peer w-full px-4 py-3 text-sm bg-white/10 backdrop-blur-md text-white border border-gray-500/40 rounded-md placeholder-transparent focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition duration-300" rows="5" {...props}></textarea>
-      <label htmlFor={id} className="absolute left-4 top-3 text-gray-300 text-sm transition-all duration-300 peer-placeholder-shown:text-base peer-placeholder-shown:translate-y-0 peer-focus:text-xs peer-focus:-translate-y-5">
+      <textarea
+        id={id}
+        placeholder=" "
+        className="peer block w-full px-4 py-3 text-sm text-white bg-transparent border border-gray-500/40 rounded-md appearance-none focus:outline-none focus:ring-0 focus:border-white transition"
+        rows="5"
+        {...props}
+      ></textarea>
+      <label
+        htmlFor={id}
+        className="absolute text-sm text-gray-300 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] bg-[#1d1d2e] px-2 
+                   peer-focus:text-white peer-focus:dark:text-white
+                   peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 
+                   peer-focus:top-4 peer-focus:scale-75 peer-focus:-translate-y-4
+                   start-4"
+      >
         {children}
       </label>
     </div>
-);
+  );
+};
 
 export default function App() { 
   const [showButton, setShowButton] = useState(false);
+
+  const [statusModal, setStatusModal] = useState({ 
+    isOpen: false, 
+    status: '', 
+    message: '' 
+  });
+
+  const closeStatusModal = () => setStatusModal({ 
+    isOpen: false, 
+    status: '', 
+    message: '' 
+  });
+
   const roadmapItems = [
     { status: 'completed', text: 'Algoritmos e Estrutura de Dados' },
     { status: 'completed', text: 'Git e Versionamento' },
@@ -101,12 +146,47 @@ export default function App() {
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    emailjs.sendForm('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', e.target, 'YOUR_PUBLIC_KEY')
-      .then(() => alert('Mensagem enviada com sucesso!'))
-      .catch(() => alert('Erro ao enviar. Tente novamente.'));
-    e.target.reset();
+
+    setStatusModal({ 
+      isOpen: true,
+      status: 'sending',
+      message: 'Enviando sua mensagem...'
+    });
+   const formData = new FormData(e.target);
+   const data = {
+    name: formData.get('user_name'),
+    email: formData.get('user_email'),
+    subject: formData.get('subject'),
+    message: formData.get('message'),
+  };
+
+  try {
+    const response = await fetch ('http://localhost:5000/api/send-email', {
+      method: 'POST',
+      headers: {
+      'Content-Type': 'application/json'},
+      body: JSON.stringify(data),
+    });
+  
+  if (!response.ok){
+    throw new Error('Erro ao enviar email');
+  }
+  setStatusModal({ 
+    isOpen: true,
+    status: 'success',
+    message: 'Email enviado com sucesso!'
+  }); 
+  e.target.reset();
+
+  } catch (error) {
+    console.error('Erro ao enviar email:', error);
+    setStatusModal({ 
+      isOpen: true,
+      status: 'error',
+      message: 'Erro ao enviar email. Por favor, tente novamente mais tarde.'});
+    }
   };
 
   return (
@@ -121,6 +201,8 @@ export default function App() {
             <div className="mt-8 flex gap-6">
                 <a href="https://github.com/brunosousa09" target="_blank" rel="noopener noreferrer" className="text-[#00ffe0] hover:scale-125 transition-transform"><Github size={32} /></a>
                 <a href="https://linkedin.com/in/brunosousa09" target="_blank" rel="noopener noreferrer" className="text-[#00ffe0] hover:scale-125 transition-transform"><Linkedin size={32} /></a>
+                <a href="https://instagram.com/brunosousa_dev" target="_blank" rel="noopener noreferrer" className="text-[#00ffe0] hover:scale-125 transition-transform"><Instagram size={32} /></a>
+                <a href="https://wa.me/5583998361148" target="_blank" rel="noopener noreferrer" className="text-[#00ffe0] hover:scale-125 transition-transform"><MessageCircle size={32} /></a>
             </div>
           </motion.section>
         </Element>
@@ -140,7 +222,7 @@ export default function App() {
         <Element name="sobre-mim" className="scroll-mt-32">
            <motion.section initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.8 }}>
             <h2 className="text-3xl font-bold text-center mb-12"><span className="text-[#00ffe0]">Sobre</span> Mim</h2>
-            <p className="text-gray-300 text-lg text-center max-w-3xl mx-auto leading-relaxed">Sou um entusiasta da tecnologia e inovação, sempre em busca de novos desafios e aprendizados. Minha jornada no desenvolvimento de software é movida pela paixão de construir ferramentas que resolvem problemas reais e impactam positivamente a vida das pessoas.</p>
+            <p className="text-gray-300 text-lg text-center max-w-3xl mx-auto leading-relaxed">Estudante de Sistemas de Informação na Universidade Federal Rural de Pernanbuco - Campos Serra Talhada - UAST | um entusiasta da tecnologia e inovação, sempre em busca de novos desafios e aprendizados. Minha jornada no desenvolvimento de software é movida pela paixão de construir ferramentas que resolvem problemas reais e impactam positivamente a vida das pessoas.</p>
            </motion.section>
         </Element>
         <Element name="roadmap" className="scroll-mt-32">
@@ -193,6 +275,12 @@ export default function App() {
           </motion.button>
         )}
       </AnimatePresence>
+      <StatusModal
+        isOpen={statusModal.isOpen}
+        status={statusModal.status}
+        message={statusModal.message}
+        onClose={closeStatusModal}
+      />
     </div>
   );
 }
