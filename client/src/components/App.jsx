@@ -163,7 +163,7 @@ export default function App() {
   };
 
   try {
-    const response = await fetch ('http://localhost:5000/api/send-email', {
+    const response = await fetch ('https://portfolio-fullstack-t0w6.onrender.com/api/send-email', {
       method: 'POST',
       headers: {
       'Content-Type': 'application/json'},
